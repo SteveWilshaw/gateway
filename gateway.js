@@ -49,14 +49,20 @@ module.exports = function gateway(docroot, options) {
           res.writeHead(404)
           return res.end()
         }
-        return next()
+
+        // If rewriteUnresolved option is set and file does not exist
+        if (options.rewriteUnresolved && !fs.existsSync(path)) {
+            file = docroot + '/' + options.rewriteUnresolved;
+        } else {
+            return next();
+        }   
       }
 
       // sanity check
       if (isMalicious(file)) return error(403)
 
       // redirect if a directory was requested w/o trailing slash
-      if (stat.isDirectory()) {
+      if (stat && stat.isDirectory()) {
         url.pathname += '/'
         return error(301, '', {'Location': URL.format(url) })
       }
